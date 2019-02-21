@@ -1,0 +1,766 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>AviationLatLonCalcDialogBase</class>
+ <widget class="QDialog" name="AviationLatLonCalcDialogBase">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>735</width>
+    <height>615</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>AviationLatLonCalculator</string>
+  </property>
+  <widget class="QDialogButtonBox" name="button_box">
+   <property name="geometry">
+    <rect>
+     <x>581</x>
+     <y>556</y>
+     <width>112</width>
+     <height>32</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+   <property name="standardButtons">
+    <set>QDialogButtonBox::Cancel</set>
+   </property>
+  </widget>
+  <widget class="QGroupBox" name="groupBox">
+   <property name="geometry">
+    <rect>
+     <x>13</x>
+     <y>11</y>
+     <width>701</width>
+     <height>110</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>Reference point</string>
+   </property>
+   <widget class="QLineEdit" name="lineEditID">
+    <property name="geometry">
+     <rect>
+      <x>12</x>
+      <y>58</y>
+      <width>113</width>
+      <height>25</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="lineEditRefLat">
+    <property name="geometry">
+     <rect>
+      <x>134</x>
+      <y>58</y>
+      <width>180</width>
+      <height>25</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="lineEditRefLon">
+    <property name="geometry">
+     <rect>
+      <x>323</x>
+      <y>58</y>
+      <width>180</width>
+      <height>25</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="lineEditRefMagVar">
+    <property name="geometry">
+     <rect>
+      <x>510</x>
+      <y>57</y>
+      <width>113</width>
+      <height>25</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="labelRefID">
+    <property name="geometry">
+     <rect>
+      <x>11</x>
+      <y>32</y>
+      <width>68</width>
+      <height>19</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>ID/Name</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="labelRefLat">
+    <property name="geometry">
+     <rect>
+      <x>135</x>
+      <y>34</y>
+      <width>68</width>
+      <height>19</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Latitude</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="labelRefLon">
+    <property name="geometry">
+     <rect>
+      <x>325</x>
+      <y>31</y>
+      <width>87</width>
+      <height>19</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Longitude</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="labelRefMagVar">
+    <property name="geometry">
+     <rect>
+      <x>509</x>
+      <y>28</y>
+      <width>68</width>
+      <height>19</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Mag Var</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QPushButton" name="pushButtonCalculate">
+   <property name="geometry">
+    <rect>
+     <x>453</x>
+     <y>556</y>
+     <width>112</width>
+     <height>34</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Calculate</string>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="comboBoxInputData">
+   <property name="geometry">
+    <rect>
+     <x>18</x>
+     <y>154</y>
+     <width>567</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <item>
+    <property name="text">
+     <string>Azimuth, distance</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>Azimuth, distance, offset</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>Local Cartesian</string>
+    </property>
+   </item>
+  </widget>
+  <widget class="QLabel" name="labelInputData">
+   <property name="geometry">
+    <rect>
+     <x>18</x>
+     <y>128</y>
+     <width>129</width>
+     <height>19</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Input data:</string>
+   </property>
+  </widget>
+  <widget class="QStackedWidget" name="stackedWidgetCalcPointInput">
+   <property name="geometry">
+    <rect>
+     <x>18</x>
+     <y>188</y>
+     <width>688</width>
+     <height>333</height>
+    </rect>
+   </property>
+   <property name="currentIndex">
+    <number>0</number>
+   </property>
+   <widget class="QWidget" name="page">
+    <widget class="QLineEdit" name="lineEditADPointID">
+     <property name="geometry">
+      <rect>
+       <x>135</x>
+       <y>21</y>
+       <width>113</width>
+       <height>25</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="lineEditADPointDistance">
+     <property name="geometry">
+      <rect>
+       <x>136</x>
+       <y>54</y>
+       <width>113</width>
+       <height>25</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="lineEditADPointAzimuth">
+     <property name="geometry">
+      <rect>
+       <x>136</x>
+       <y>89</y>
+       <width>113</width>
+       <height>25</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label">
+     <property name="geometry">
+      <rect>
+       <x>21</x>
+       <y>27</y>
+       <width>68</width>
+       <height>19</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>ID/Name</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_2">
+     <property name="geometry">
+      <rect>
+       <x>21</x>
+       <y>59</y>
+       <width>68</width>
+       <height>19</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Distance</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_3">
+     <property name="geometry">
+      <rect>
+       <x>22</x>
+       <y>91</y>
+       <width>68</width>
+       <height>19</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Azimuth</string>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="comboBoxADPointDistanceUOM">
+     <property name="geometry">
+      <rect>
+       <x>263</x>
+       <y>56</y>
+       <width>92</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <item>
+      <property name="text">
+       <string>m</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>km</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>NM</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>feet</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>SM</string>
+      </property>
+     </item>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="page_2">
+    <widget class="QLabel" name="label_4">
+     <property name="geometry">
+      <rect>
+       <x>24</x>
+       <y>50</y>
+       <width>68</width>
+       <height>19</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Distance</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="lineEditADOPointDistance">
+     <property name="geometry">
+      <rect>
+       <x>139</x>
+       <y>45</y>
+       <width>113</width>
+       <height>25</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_5">
+     <property name="geometry">
+      <rect>
+       <x>25</x>
+       <y>82</y>
+       <width>68</width>
+       <height>19</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Azimuth</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="lineEditADOPointAzimuth">
+     <property name="geometry">
+      <rect>
+       <x>139</x>
+       <y>80</y>
+       <width>113</width>
+       <height>25</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_6">
+     <property name="geometry">
+      <rect>
+       <x>24</x>
+       <y>18</y>
+       <width>68</width>
+       <height>19</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>ID/Name</string>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="comboBoxADOPointDistanceUOM">
+     <property name="geometry">
+      <rect>
+       <x>266</x>
+       <y>47</y>
+       <width>92</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <item>
+      <property name="text">
+       <string>m</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>km</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>NM</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>feet</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>SM</string>
+      </property>
+     </item>
+    </widget>
+    <widget class="QLineEdit" name="lineEditADOPointID">
+     <property name="geometry">
+      <rect>
+       <x>138</x>
+       <y>12</y>
+       <width>113</width>
+       <height>25</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_7">
+     <property name="geometry">
+      <rect>
+       <x>22</x>
+       <y>121</y>
+       <width>99</width>
+       <height>19</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Offsed side</string>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="comboBoxADOPointOffsetSite">
+     <property name="geometry">
+      <rect>
+       <x>140</x>
+       <y>120</y>
+       <width>116</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <item>
+      <property name="text">
+       <string>LEFT</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>RIGHT</string>
+      </property>
+     </item>
+    </widget>
+    <widget class="QLineEdit" name="lineEditADOOffsetPointDistance">
+     <property name="geometry">
+      <rect>
+       <x>138</x>
+       <y>160</y>
+       <width>113</width>
+       <height>25</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="comboBoxADOOffsetPointDistanceUOM">
+     <property name="geometry">
+      <rect>
+       <x>265</x>
+       <y>162</y>
+       <width>92</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <item>
+      <property name="text">
+       <string>m</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>km</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>NM</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>feet</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>SM</string>
+      </property>
+     </item>
+    </widget>
+    <widget class="QLabel" name="label_8">
+     <property name="geometry">
+      <rect>
+       <x>23</x>
+       <y>165</y>
+       <width>102</width>
+       <height>19</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Offset distance</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="page_3">
+    <widget class="QGroupBox" name="groupBox_2">
+     <property name="geometry">
+      <rect>
+       <x>11</x>
+       <y>16</y>
+       <width>531</width>
+       <height>101</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Axes definition</string>
+     </property>
+     <widget class="QLabel" name="label_9">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>30</y>
+        <width>191</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>X axis azimuth/bearing</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="lineEditXAxisBearing">
+      <property name="geometry">
+       <rect>
+        <x>200</x>
+        <y>30</y>
+        <width>113</width>
+        <height>27</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_10">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>60</y>
+        <width>161</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Y axis orientation</string>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="comboBoxYAxisOrientation">
+      <property name="geometry">
+       <rect>
+        <x>200</x>
+        <y>60</y>
+        <width>92</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <item>
+       <property name="text">
+        <string>LEFT</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>RIGHT</string>
+       </property>
+      </item>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="gbSecondPoint">
+     <property name="geometry">
+      <rect>
+       <x>9</x>
+       <y>130</y>
+       <width>551</width>
+       <height>146</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>End point</string>
+     </property>
+     <property name="flat">
+      <bool>true</bool>
+     </property>
+     <widget class="QLabel" name="lbEpX">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>70</y>
+        <width>51</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>X</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="lineEditCartesianX">
+      <property name="geometry">
+       <rect>
+        <x>120</x>
+        <y>70</y>
+        <width>151</width>
+        <height>27</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="comboBoxCartesianXUOM">
+      <property name="geometry">
+       <rect>
+        <x>280</x>
+        <y>70</y>
+        <width>92</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <item>
+       <property name="text">
+        <string>m</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>KM</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>NM</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>feet</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>SM</string>
+       </property>
+      </item>
+     </widget>
+     <widget class="QLabel" name="lbEpY">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>100</y>
+        <width>51</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Y</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="lineEditCartesianY">
+      <property name="geometry">
+       <rect>
+        <x>120</x>
+        <y>100</y>
+        <width>151</width>
+        <height>27</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="comboBoxCartesianYUOM">
+      <property name="geometry">
+       <rect>
+        <x>280</x>
+        <y>100</y>
+        <width>92</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <item>
+       <property name="text">
+        <string>m</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>KM</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>NM</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>feet</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>SM</string>
+       </property>
+      </item>
+     </widget>
+     <widget class="QLineEdit" name="lineEditLCPointID">
+      <property name="geometry">
+       <rect>
+        <x>120</x>
+        <y>30</y>
+        <width>151</width>
+        <height>27</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_11">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>30</y>
+        <width>111</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Point name</string>
+      </property>
+     </widget>
+    </widget>
+   </widget>
+  </widget>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>button_box</sender>
+   <signal>accepted()</signal>
+   <receiver>AviationLatLonCalcDialogBase</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>button_box</sender>
+   <signal>rejected()</signal>
+   <receiver>AviationLatLonCalcDialogBase</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>
