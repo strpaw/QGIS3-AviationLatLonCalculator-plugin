@@ -198,8 +198,8 @@ class AviationLatLonCalc:
         prov = mlyr.dataProvider()
         mlyr.startEditing()
         prov.addAttributes([QgsField("CP_ID", QVariant.String),  # Origin point ID
-                            QgsField("CP_LATDD", QVariant.String),  # Calculated point latitude (decimal degrees)
-                            QgsField("CP_LONDD", QVariant.String),  # Calculated point longitude (decimal degrees)
+                            QgsField("CP_LAT", QVariant.String),  # Calculated point latitude (decimal degrees)
+                            QgsField("CP_LON", QVariant.String),  # Calculated point longitude (decimal degrees)
                             QgsField("CP_DEF", QVariant.String)])  # Calculated point in polar coordinates
         mlyr.commitChanges()
         QgsProject.instance().addMapLayer(mlyr)
@@ -391,10 +391,12 @@ class AviationLatLonCalc:
                 calc_point.local_cartesian_coordinates2latlon(x_axis_brng, y_axis_orient, x, y)
 
         if check_result is True:
+            cp_lat_dms, cp_lon_dms = calc_point.get_calc_point_dms()
             cp_qgs_point = QgsPointXY(calc_point.cp_lon_dd, calc_point.cp_lat_dd)
+
             cp_attributes = [calc_point_id,
-                             str(calc_point.cp_lat_dd),
-                             str(calc_point.cp_lon_dd),
+                             cp_lat_dms,
+                             cp_lon_dms,
                              calc_point.cp_definition]
 
             layers = QgsProject.instance().layerTreeRoot().children()

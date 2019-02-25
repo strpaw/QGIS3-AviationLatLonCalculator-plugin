@@ -573,6 +573,19 @@ class AngleBase(AviationBaseClass):
         else:
             return False, None
 
+    @staticmethod
+    def dd2dms(angle_dd):
+        """ Convert decimal degrees format into decimal, minutes, seconds format"""
+        dd = math.fabs(angle_dd)
+        deg = int(math.trunc(dd))
+        min_dd = round((dd - deg) * 60, 8)
+        minutes = int(math.trunc(min_dd))
+        sec = round((min_dd - minutes) * 60, 3)
+
+        dms = '{deg:0>2} {minutes:0>2} {sec:05.3f}'.format(deg=deg, minutes=minutes, sec=sec)
+
+        return dms
+
 
 class CoordinatesPair(AngleBase):
     def __init__(self, lat_src, lon_src):
@@ -758,8 +771,9 @@ class AviationBasePoint(AviationBaseClass):
             self.err_msg += self.mag_var.err_msg
 
 
-class AviationCalculatedPoint:
+class AviationCalculatedPoint(AngleBase):
     def __init__(self, ref_point: AviationBasePoint):
+        AngleBase.__init__(self)
         self.ref_point = ref_point
         self._cp_lat_dd = None
         self._cp_lon_dd = None
@@ -855,6 +869,27 @@ class AviationCalculatedPoint:
                                                                                           x_axis_brng.brng_src,
                                                                                           x.dist_src, x.dist_uom,
                                                                                           y.dist_src, y.dist_uom)
+
+    def get_calc_point_dms(self):
+        """ Gets DMS format of calculated point
+        :return: tuple: two elements of tuple, str """
+        lat_dms = self.dd2dms(self.cp_lat_dd)
+        if self.cp_lat_dd < 0:
+            lat_suffix = 'S'
+        else:
+            lat_suffix = 'N'
+        cp_lat_dms = lat_dms + lat_suffix
+
+        lon_dms = self.dd2dms(self.cp_lon_dd)
+        if self.cp_lon_dd < 0:
+            lon_suffix = 'W'
+        else:
+            lon_suffix = 'E'
+
+        cp_lon_dms = lon_dms + lon_suffix
+
+        return cp_lat_dms, cp_lon_dms
+
     @property
     def cp_lat_dd(self):
         return self._cp_lat_dd
