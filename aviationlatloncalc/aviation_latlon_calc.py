@@ -23,7 +23,7 @@
 """
 from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, QVariant
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QAction, QMessageBox, QWidget
+from PyQt5.QtWidgets import QAction, QMessageBox, QWidget, QFileDialog
 from qgis.core import *
 
 # Initialize Qt resources from file resources.py
@@ -31,6 +31,7 @@ from .resources import *
 # Import the code for the dialog
 from .aviation_latlon_calc_dialog import AviationLatLonCalcDialog
 import os.path
+import csv
 from . import aviation_gis_core as agc
 
 w = QWidget()
@@ -49,6 +50,8 @@ class AviationLatLonCalc:
         """
         self.ref_point = None
         self.mlyr_name = ''
+        self.input_file = ''
+
         # Save reference to the QGIS interface
         self.iface = iface
         # initialize plugin directory
@@ -71,6 +74,9 @@ class AviationLatLonCalc:
         self.dlg = AviationLatLonCalcDialog()
         self.dlg.comboBoxInputData.currentIndexChanged.connect(self.set_calculated_point_input)
         self.dlg.pushButtonCalculate.clicked.connect(self.calculate)
+        self.dlg.pushButtonInputCSVAzDist.clicked.connect(self.select_input_file_az_dist)
+        self.dlg.pushButtonInputCSVAzDistOffset.clicked.connect(self.select_input_file_az_dist_offset)
+        self.dlg.pushButtonInputLocalCartesian.clicked.connect(self.select_input_file_local_cartesian)
 
         # Declare instance attributes
         self.actions = []
@@ -178,7 +184,6 @@ class AviationLatLonCalc:
             callback=self.run,
             parent=self.iface.mainWindow())
 
-
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
         for action in self.actions:
@@ -188,6 +193,26 @@ class AviationLatLonCalc:
             self.iface.removeToolBarIcon(action)
         # remove the toolbar
         del self.toolbar
+
+    # TO DO: self.input_file rozdzielic na typy plikow?
+
+    def select_input_file_az_dist(self):
+        """ Select input csv file with data:
+        ID of the point, azimuth, distance from reference point to the current point """
+        self.input_file = QFileDialog.getOpenFileName(self.dlg, "Select input file ", "", '*.csv')[0]
+        self.dlg.lineEditInputCSVAzDist.setText(self.input_file)
+
+    def select_input_file_az_dist_offset(self):
+        """ Select input csv file with data:
+        ID of the point, azimuth, distance from reference point to the current point """
+        self.input_file = QFileDialog.getOpenFileName(self.dlg, "Select input file ", "", '*.csv')[0]
+        self.dlg.lineEditInputCSVAzDistOffset.setText(self.input_file)
+
+    def select_input_file_local_cartesian(self):
+        """ Select input csv file with data:
+        ID of the point, azimuth, distance from reference point to the current point """
+        self.input_file = QFileDialog.getOpenFileName(self.dlg, "Select input file ", "", '*.csv')[0]
+        self.dlg.lineEditInputCSVLocalCartesian.setText(self.input_file)
 
     @staticmethod
     def create_mem_lyr(lyr_name):
@@ -225,6 +250,12 @@ class AviationLatLonCalc:
             self.dlg.stackedWidgetCalcPointInput.setCurrentIndex(1)
         elif self.dlg.comboBoxInputData.currentIndex() == 2:  # Local Cartesian
             self.dlg.stackedWidgetCalcPointInput.setCurrentIndex(2)
+        elif self.dlg.comboBoxInputData.currentIndex() == 3:  # CSV azimuth, distance
+            self.dlg.stackedWidgetCalcPointInput.setCurrentIndex(3)
+        elif self.dlg.comboBoxInputData.currentIndex() == 4:  # CSV azimuth, distance, offset
+            self.dlg.stackedWidgetCalcPointInput.setCurrentIndex(4)
+        elif self.dlg.comboBoxInputData.currentIndex() == 5:  # CSV Local Cartesian
+            self.dlg.stackedWidgetCalcPointInput.setCurrentIndex(5)
 
     def check_ref_point(self):
         """ Checks if reference point input data is correct
@@ -316,7 +347,22 @@ class AviationLatLonCalc:
         check_result, check_msg = self.check_ref_point()
         calc_point_id = ''
 
+        # Create temporary memory layer
+
+        layers = QgsProject.instance().layerTreeRoot().children()
+        layers_list = []  # List of layers in current (opened) QGIS project
+        for layer in layers:
+            layers_list.append(layer.name())
+
+        if self.mlyr_name == '':
+            self.mlyr_name = 'TEST'
+
+        if self.mlyr_name not in layers_list:
+            self.create_mem_lyr(self.mlyr_name)
+
         calc_point = agc.AviationCalculatedPoint(self.ref_point)
+
+        # Single point - azimuth, distance
 
         if self.dlg.comboBoxInputData.currentIndex() == 0:  # Azimuth, Distance single point
             ad_brng = agc.Bearing(self.dlg.lineEditADPointAzimuth.text())
@@ -336,6 +382,19 @@ class AviationLatLonCalc:
             else:
                 calc_point_id = self.dlg.lineEditADPointID.text()
                 calc_point.polar_coordinates2latlon(ad_brng, ad_dist)
+
+            if check_result is True:
+                cp_lat_dms, cp_lon_dms = calc_point.get_calc_point_dms()
+                cp_qgs_point = QgsPointXY(calc_point.cp_lon_dd, calc_point.cp_lat_dd)
+
+                cp_attributes = [calc_point_id,
+                                 cp_lat_dms,
+                                 cp_lon_dms,
+                                 calc_point.cp_definition]
+
+                self.add_point_to_layer(cp_qgs_point, cp_attributes)
+
+        # Single point - azimuth, distance, offset
 
         elif self.dlg.comboBoxInputData.currentIndex() == 1:
             ado_distance = agc.Distance(self.dlg.lineEditADOPointDistance.text(),
@@ -363,55 +422,70 @@ class AviationLatLonCalc:
                 calc_point_id = self.dlg.lineEditADOPointID.text()
                 calc_point.offset_coordinates2latlon(ado_brng, ado_distance, ado_offset_side, ado_offset_distance)
 
-        elif self.dlg.comboBoxInputData.currentIndex() == 2:
+            if check_result is True:
+                cp_lat_dms, cp_lon_dms = calc_point.get_calc_point_dms()
+                cp_qgs_point = QgsPointXY(calc_point.cp_lon_dd, calc_point.cp_lat_dd)
 
-            x_axis_brng = agc.Bearing(self.dlg.lineEditXAxisBearing.text(), checked_value='X axis bearing')
-            x = agc.Distance(self.dlg.lineEditCartesianX.text(), self.get_cartesian_x_uom(),
-                             checked_value='X coordinate', allow_negative=True)
-            y = agc.Distance(self.dlg.lineEditCartesianY.text(), self.get_cartesian_y_uom(),
-                             checked_value='Y coordinate', allow_negative=True)
+                cp_attributes = [calc_point_id,
+                                 cp_lat_dms,
+                                 cp_lon_dms,
+                                 calc_point.cp_definition]
 
-            if x_axis_brng.is_valid is False:
+                self.add_point_to_layer(cp_qgs_point, cp_attributes)
+
+        # CSV file - azimuth, distance
+
+        elif self.dlg.comboBoxInputData.currentIndex() == 3:
+            if self.dlg.lineEditInputCSVAzDist.text() == '':  # File not chosen
+                # TO DO: validate if file exist is in correct format
                 check_result = False
-                check_msg += x_axis_brng.err_msg
-
-            if x.is_valid is False:
-                check_result = False
-                check_msg += x.err_msg
-
-            if y.is_valid is False:
-                check_result = False
-                check_msg += y.err_msg
+                check_msg += 'Choose input CSV file with Azimuth and Distance data!\n'
 
             if check_result is False:
                 QMessageBox.critical(w, "Message", check_msg)
             else:
-                calc_point_id = self.dlg.lineEditLCPointID.text()
-                y_axis_orient = self.dlg.comboBoxYAxisOrientation.currentText()
-                calc_point.local_cartesian_coordinates2latlon(x_axis_brng, y_axis_orient, x, y)
 
-        if check_result is True:
-            cp_lat_dms, cp_lon_dms = calc_point.get_calc_point_dms()
-            cp_qgs_point = QgsPointXY(calc_point.cp_lon_dd, calc_point.cp_lat_dd)
+                # Ustaw aktwyna warstwe jako 'TEST'
 
-            cp_attributes = [calc_point_id,
-                             cp_lat_dms,
-                             cp_lon_dms,
-                             calc_point.cp_definition]
+                out_lyr = self.iface.activeLayer()
+                out_lyr.startEditing()
+                out_prov = out_lyr.dataProvider()
+                feat = QgsFeature()
 
-            layers = QgsProject.instance().layerTreeRoot().children()
-            layers_list = []  # List of layers in current (opened) QGIS project
-            for layer in layers:
-                layers_list.append(layer.name())
+                with open(self.input_file, 'r') as data_file:
+                    reader = csv.DictReader(data_file, delimiter=';')
+                    for row in reader:
+                        # TO DO: UOM in csv file sprawdzanie
+                        azm = agc.Bearing(row['BRNG'])
+                        dist = agc.Distance(row['DIST'], agc.UOM_NM)
 
-            if self.mlyr_name == '':
-                self.mlyr_name = 'TEST'
+                        if azm.is_valid is True and dist.is_valid is True:
+                            csv_points_uom = agc.UOM_NM
 
-            if self.mlyr_name not in layers_list:
-                self.create_mem_lyr(self.mlyr_name)
-                self.add_point_to_layer(cp_qgs_point, cp_attributes)
-            else:
-                self.add_point_to_layer(cp_qgs_point, cp_attributes)
+                            calc_point_id = row['NAME']
+                            calc_point.polar_coordinates2latlon(azm, dist)
+
+                            cp_lat_dms, cp_lon_dms = calc_point.get_calc_point_dms()
+                            cp_qgs_point = QgsPointXY(calc_point.cp_lon_dd, calc_point.cp_lat_dd)
+
+                            cp_attributes = [calc_point_id,
+                                             cp_lat_dms,
+                                             cp_lon_dms,
+                                             calc_point.cp_definition]
+
+                            feat.setGeometry(QgsGeometry.fromPointXY(cp_qgs_point))
+                            feat.setAttributes(cp_attributes)
+                            out_prov.addFeatures([feat])
+                        else:
+                            pass
+
+                    out_lyr.commitChanges()
+                    out_lyr.updateExtents()
+                    self.iface.mapCanvas().setExtent(out_lyr.extent())
+                    self.iface.mapCanvas().refresh()
+
+
+
 
     def run(self):
         """Run method that performs all the real work"""

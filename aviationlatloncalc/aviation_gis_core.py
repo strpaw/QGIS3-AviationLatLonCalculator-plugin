@@ -780,6 +780,10 @@ class AviationCalculatedPoint(AngleBase):
         self._cp_definition = ''
 
     def polar_coordinates2latlon(self, angular_coord: Bearing, radial_coord: Distance):
+        true_or_mag = 'TRUE'
+        if self.ref_point.mag_var.mag_var_src != '':
+            true_or_mag = 'MAG'
+
         tbrng = angular_coord.calc_tbrng(self.ref_point.mag_var.mag_var_dd)
         distance_m = radial_coord.get_meters()
         self.cp_lat_dd, self.cp_lon_dd = vincenty_direct_solution(self.ref_point.coordinates.lat_dd,
@@ -787,10 +791,11 @@ class AviationCalculatedPoint(AngleBase):
                                                                   tbrng,
                                                                   distance_m,
                                                                   WGS84_A, WGS84_B, WGS84_F)
-        self.cp_definition = 'Ref. ident: {}; Bearing: {}; Distance: {} {}'.format(self.ref_point.ident,
-                                                                                   angular_coord.brng_src,
-                                                                                   radial_coord.dist_src,
-                                                                                   radial_coord.dist_uom)
+        self.cp_definition = 'Ref. ident: {}; Azimuth: {} {}; Distance: {} {}'.format(self.ref_point.ident,
+                                                                                     angular_coord.brng_src,
+                                                                                     true_or_mag,
+                                                                                     radial_coord.dist_src,
+                                                                                     radial_coord.dist_uom)
 
     def offset_coordinates2latlon(self, brng: Bearing, dist: Distance, offset_side, offset_dist: Distance):
         tbrng = brng.calc_tbrng(self.ref_point.mag_var.mag_var_dd)
@@ -913,3 +918,41 @@ class AviationCalculatedPoint(AngleBase):
     @cp_definition.setter
     def cp_definition(self, value):
         self._cp_definition = value
+
+
+VALID = 'VALID'
+NOT_VALID = 'NOT_VALID'
+
+def check_distance2(d):
+    """ Distance validation. Uses float() function to check if parameters is a number
+    :param d: string, distance to validate
+    :return is_valid: True if distance is valid,
+                     constant NOT_VALID if distance is not valid (e.g distance is less than 0)
+    """
+    try:
+        dist = float(d)
+        if dist < 0:  # Check if is less than 0
+            dist = NOT_VALID
+    except ValueError:
+        dist = NOT_VALID
+    return dist
+
+
+def check_azm_dist(azm, dist):
+    """ Checks if azimuth and distance in CSV file are correct.
+    :param azm: azimuth to check
+    :param dist: distance to check
+    :return: is_valid: bool, True if input is valid, False otherwise
+    :return: err_msg: str, string with error message
+    """
+    is_valid = True
+    err_msg = ''
+    a = Bearing(azm)
+
+    if a.is_valid is False:
+        is_valid = False
+        err_msg += '*Azimuth value error*'
+    if check_distance2(dist) == NOT_VALID:
+        is_valid = False
+        err_msg += '*Distance value error*'
+    return is_valid, err_msg
