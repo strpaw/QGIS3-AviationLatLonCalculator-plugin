@@ -15,6 +15,8 @@ UOM_NM = 'NM'  # nautical miles
 UOM_FEET = 'FEET'  # feet
 UOM_SM = 'SM'  # statue miles
 
+UOM_LIST = [UOM_M, UOM_KM, UOM_NM, UOM_FEET, UOM_SM]
+
 # Geometry types
 
 GEOM_POINT = 'POINT'
@@ -792,10 +794,10 @@ class AviationCalculatedPoint(AngleBase):
                                                                   distance_m,
                                                                   WGS84_A, WGS84_B, WGS84_F)
         self.cp_definition = 'Ref. ident: {}; Azimuth: {} {}; Distance: {} {}'.format(self.ref_point.ident,
-                                                                                     angular_coord.brng_src,
-                                                                                     true_or_mag,
-                                                                                     radial_coord.dist_src,
-                                                                                     radial_coord.dist_uom)
+                                                                                      angular_coord.brng_src,
+                                                                                      true_or_mag,
+                                                                                      radial_coord.dist_src,
+                                                                                      radial_coord.dist_uom)
 
     def offset_coordinates2latlon(self, brng: Bearing, dist: Distance, offset_side, offset_dist: Distance):
         tbrng = brng.calc_tbrng(self.ref_point.mag_var.mag_var_dd)

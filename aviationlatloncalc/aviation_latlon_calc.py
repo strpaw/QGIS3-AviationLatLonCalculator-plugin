@@ -272,6 +272,11 @@ class AviationLatLonCalc:
             check_result = False
             check_msg += self.ref_point.err_msg
 
+        # wyswietl wartosci DD
+        else:
+            self.dlg.ref_lat_DD.setText(str(self.ref_point.coordinates.lat_dd))
+            self.dlg.ref_lon_DD.setText(str(self.ref_point.coordinates.lon_dd))
+            self.dlg.ref_mag_var.setText(str(self.ref_point.mag_var.mag_var_dd))
         return check_result, check_msg
 
     def get_ad_distance_uom(self):
@@ -433,13 +438,136 @@ class AviationLatLonCalc:
 
                 self.add_point_to_layer(cp_qgs_point, cp_attributes)
 
+        # Single point - Local Cartesian
+
+        elif self.dlg.comboBoxInputData.currentIndex() == 2:
+
+            x_axis_brng = agc.Bearing(self.dlg.lineEditXAxisBearing.text(), checked_value='X axis bearing')
+            x = agc.Distance(self.dlg.lineEditCartesianX.text(), self.get_cartesian_x_uom(),
+                             checked_value='X coordinate', allow_negative=True)
+            y = agc.Distance(self.dlg.lineEditCartesianY.text(), self.get_cartesian_y_uom(),
+                             checked_value='Y coordinate', allow_negative=True)
+
+            if x_axis_brng.is_valid is False:
+                check_result = False
+                check_msg += x_axis_brng.err_msg
+
+            if x.is_valid is False:
+                check_result = False
+                check_msg += x.err_msg
+
+            if y.is_valid is False:
+                check_result = False
+                check_msg += y.err_msg
+
+            if check_result is False:
+                QMessageBox.critical(w, "Message", check_msg)
+            else:
+                calc_point_id = self.dlg.lineEditLCPointID.text()
+                y_axis_orient = self.dlg.comboBoxYAxisOrientation.currentText()
+                calc_point.local_cartesian_coordinates2latlon(x_axis_brng, y_axis_orient, x, y)
+
+            if check_result is True:
+                cp_lat_dms, cp_lon_dms = calc_point.get_calc_point_dms()
+                cp_qgs_point = QgsPointXY(calc_point.cp_lon_dd, calc_point.cp_lat_dd)
+
+                cp_attributes = [calc_point_id,
+                                 cp_lat_dms,
+                                 cp_lon_dms,
+                                 calc_point.cp_definition]
+
+                self.add_point_to_layer(cp_qgs_point, cp_attributes)
+
         # CSV file - azimuth, distance
 
         elif self.dlg.comboBoxInputData.currentIndex() == 3:
+
+            line_correct = True
+            line_err_msg = ''
+            log_line = ''
+
             if self.dlg.lineEditInputCSVAzDist.text() == '':  # File not chosen
                 # TO DO: validate if file exist is in correct format
                 check_result = False
                 check_msg += 'Choose input CSV file with Azimuth and Distance data!\n'
+
+            if check_result is False:
+                QMessageBox.critical(w, "Message", check_msg)
+            else:
+
+                line_nr = 0
+                # Ustaw aktwyna warstwe jako 'TEST'
+
+                out_lyr = self.iface.activeLayer()
+                out_lyr.startEditing()
+                out_prov = out_lyr.dataProvider()
+                feat = QgsFeature()
+
+                with open(self.input_file, 'r') as data_file:
+
+                    reader = csv.DictReader(data_file, delimiter=';')
+                    for row in reader:
+                        # TO DO: UOM in csv file sprawdzanie
+
+                        line_nr += 1
+                        line_correct = True
+                        line_err_msg = ''
+
+                        try:  # Try read fields of CSV file
+
+                            azm = agc.Bearing(row['BRNG'])
+                            dist_uom = row['DIST_UOM']
+                            dist = agc.Distance(row['DIST'], dist_uom)
+
+                            if azm.is_valid is False:
+                                line_correct = False
+                                line_err_msg += 'Azimuth missing or invalid.'
+
+                            if dist.is_valid is False:
+                                line_correct = False
+                                line_err_msg += 'Distance missing or invalid or wrong/missing UOM.'
+
+                            if dist_uom not in agc.UOM_LIST:
+                                line_correct = False
+                                line_err_msg += 'Distance UOM missing or invalid.'
+
+                            if line_correct is True:
+
+                                calc_point_id = row['NAME']
+                                calc_point.polar_coordinates2latlon(azm, dist)
+
+                                cp_lat_dms, cp_lon_dms = calc_point.get_calc_point_dms()
+                                cp_qgs_point = QgsPointXY(calc_point.cp_lon_dd, calc_point.cp_lat_dd)
+
+                                cp_attributes = [calc_point_id,
+                                                 cp_lat_dms,
+                                                 cp_lon_dms,
+                                                 calc_point.cp_definition]
+
+                                feat.setGeometry(QgsGeometry.fromPointXY(cp_qgs_point))
+                                feat.setAttributes(cp_attributes)
+                                out_prov.addFeatures([feat])
+                            else:
+                                log_line = 'Line nr {}: {}: {}'.format(line_nr, row, line_err_msg)
+                                self.dlg.plainTextEditAzmDistSummary.appendPlainText(log_line)
+                        except:  # Unable to read CSV fields -> wrong/missing key, wrong delimiter etc.
+                            line_err_msg = 'CSV format not supported'
+                            log_line = 'Line nr {}: {}: {}'.format(line_nr, row, line_err_msg)
+                            self.dlg.plainTextEditAzmDistSummary.appendPlainText(log_line)
+
+                    out_lyr.commitChanges()
+                    out_lyr.updateExtents()
+                    self.iface.mapCanvas().setExtent(out_lyr.extent())
+                    self.iface.mapCanvas().refresh()
+
+        # CSV file - azimuth, distance, offset
+        elif self.dlg.comboBoxInputData.currentIndex() == 4:
+
+
+            if self.dlg.lineEditInputCSVAzDistOffset.text() == '':  # File not chosen
+                # TO DO: validate if file exist is in correct format
+                check_result = False
+                check_msg += 'Choose input CSV file with Azimuth, Distance and Offset data!\n'
 
             if check_result is False:
                 QMessageBox.critical(w, "Message", check_msg)
@@ -455,15 +583,19 @@ class AviationLatLonCalc:
                 with open(self.input_file, 'r') as data_file:
                     reader = csv.DictReader(data_file, delimiter=';')
                     for row in reader:
-                        # TO DO: UOM in csv file sprawdzanie
+                        # Read fields of CSV file
+                        calc_point_id = row['NAME']
                         azm = agc.Bearing(row['BRNG'])
-                        dist = agc.Distance(row['DIST'], agc.UOM_NM)
+                        dist_uom = row['DIST_UOM']
+                        dist = agc.Distance(row['DIST'], dist_uom)
+                        offset_side = row['OFFSET_SIDE']
+                        offset_uom = row['OFFSET_UOM']
+                        offset_dist = agc.Distance(row['OFFSET_DIST'], offset_uom)
 
-                        if azm.is_valid is True and dist.is_valid is True:
-                            csv_points_uom = agc.UOM_NM
+                        # Check if CSV field values are correct
+                        if azm.is_valid is True and dist.is_valid is True and offset_dist.is_valid is True:
 
-                            calc_point_id = row['NAME']
-                            calc_point.polar_coordinates2latlon(azm, dist)
+                            calc_point.offset_coordinates2latlon(azm, dist, offset_side, offset_dist)
 
                             cp_lat_dms, cp_lon_dms = calc_point.get_calc_point_dms()
                             cp_qgs_point = QgsPointXY(calc_point.cp_lon_dd, calc_point.cp_lat_dd)
@@ -484,6 +616,71 @@ class AviationLatLonCalc:
                     self.iface.mapCanvas().setExtent(out_lyr.extent())
                     self.iface.mapCanvas().refresh()
 
+        # CSV file - Local Cartesian
+
+        elif self.dlg.comboBoxInputData.currentIndex() == 5:
+
+            x_axis_brng = agc.Bearing(self.dlg.lineEditXAxisBearingCSVMode.text(),
+                                      checked_value='X axis bearing')
+
+            if x_axis_brng.is_valid is False:
+                check_result = False
+                check_msg += x_axis_brng.err_msg
+
+            if self.dlg.lineEditInputCSVLocalCartesian.text() == '':  # File not chosen
+                # TO DO: validate if file exist is in correct format
+                check_result = False
+                check_msg += 'Choose input CSV file with Local Cartesian data!\n'
+
+            if check_result is False:
+                QMessageBox.critical(w, "Message", check_msg)
+            else:
+                y_axis_orient = self.dlg.comboBoxYAxisOrientationCSVMode.currentText()
+
+                # Ustaw aktwyna warstwe jako 'TEST'
+
+                out_lyr = self.iface.activeLayer()
+                out_lyr.startEditing()
+                out_prov = out_lyr.dataProvider()
+                feat = QgsFeature()
+
+                with open(self.input_file, 'r') as data_file:
+                    reader = csv.DictReader(data_file, delimiter=';')
+                    for row in reader:
+
+                        # Read fields of CSV file
+                        calc_point_id = row['NAME']
+                        x_uom = row['X_UOM']
+                        x_value = agc.Distance(row['X'], x_uom,
+                                               checked_value='X coordinate', allow_negative=True)
+                        y_uom = row['Y_UOM']
+                        y_value = agc.Distance(row['Y'], y_uom,
+                                               checked_value='X coordinate', allow_negative=True)
+
+
+                        # Check if CSV field values are correct
+                        if x_value.is_valid is True and y_value.is_valid is True:
+
+                            calc_point.local_cartesian_coordinates2latlon(x_axis_brng, y_axis_orient, x_value, y_value)
+
+                            cp_lat_dms, cp_lon_dms = calc_point.get_calc_point_dms()
+                            cp_qgs_point = QgsPointXY(calc_point.cp_lon_dd, calc_point.cp_lat_dd)
+
+                            cp_attributes = [calc_point_id,
+                                             cp_lat_dms,
+                                             cp_lon_dms,
+                                             calc_point.cp_definition]
+
+                            feat.setGeometry(QgsGeometry.fromPointXY(cp_qgs_point))
+                            feat.setAttributes(cp_attributes)
+                            out_prov.addFeatures([feat])
+                        else:
+                            pass
+
+                    out_lyr.commitChanges()
+                    out_lyr.updateExtents()
+                    self.iface.mapCanvas().setExtent(out_lyr.extent())
+                    self.iface.mapCanvas().refresh()
 
 
 

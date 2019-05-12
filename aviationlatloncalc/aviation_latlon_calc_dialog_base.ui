@@ -133,6 +133,45 @@
      <string>Mag Var</string>
     </property>
    </widget>
+   <widget class="QLabel" name="ref_lat_DD">
+    <property name="geometry">
+     <rect>
+      <x>131</x>
+      <y>89</y>
+      <width>68</width>
+      <height>19</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>TextLabel</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="ref_lon_DD">
+    <property name="geometry">
+     <rect>
+      <x>331</x>
+      <y>88</y>
+      <width>68</width>
+      <height>19</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>TextLabel</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="ref_mag_var">
+    <property name="geometry">
+     <rect>
+      <x>515</x>
+      <y>88</y>
+      <width>68</width>
+      <height>19</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>TextLabel</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QPushButton" name="pushButtonCalculate">
    <property name="geometry">
@@ -169,6 +208,21 @@
    <item>
     <property name="text">
      <string>Local Cartesian</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>CSV - Azimuth, distance</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>CSV - Azimuth, distance, offset</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>CSV - Local Cartesian</string>
     </property>
    </item>
   </widget>
@@ -723,6 +777,221 @@
       <property name="text">
        <string>Point name</string>
       </property>
+     </widget>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="page_4">
+    <widget class="QGroupBox" name="gbInOutCsv">
+     <property name="geometry">
+      <rect>
+       <x>13</x>
+       <y>14</y>
+       <width>541</width>
+       <height>80</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Input and output csv files</string>
+     </property>
+     <property name="flat">
+      <bool>true</bool>
+     </property>
+     <widget class="QPushButton" name="pushButtonInputCSVAzDist">
+      <property name="geometry">
+       <rect>
+        <x>5</x>
+        <y>30</y>
+        <width>141</width>
+        <height>34</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Select input file</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="lineEditInputCSVAzDist">
+      <property name="geometry">
+       <rect>
+        <x>148</x>
+        <y>33</y>
+        <width>390</width>
+        <height>27</height>
+       </rect>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QPlainTextEdit" name="plainTextEditAzmDistSummary">
+     <property name="geometry">
+      <rect>
+       <x>16</x>
+       <y>134</y>
+       <width>613</width>
+       <height>184</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_14">
+     <property name="geometry">
+      <rect>
+       <x>18</x>
+       <y>103</y>
+       <width>100</width>
+       <height>19</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Summary:</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="page_5">
+    <widget class="QGroupBox" name="gbInOutCsv_2">
+     <property name="geometry">
+      <rect>
+       <x>7</x>
+       <y>12</y>
+       <width>541</width>
+       <height>131</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Input and output csv files</string>
+     </property>
+     <property name="flat">
+      <bool>true</bool>
+     </property>
+     <widget class="QPushButton" name="pushButtonInputCSVAzDistOffset">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>30</y>
+        <width>141</width>
+        <height>34</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Select input file</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="lineEditInputCSVAzDistOffset">
+      <property name="geometry">
+       <rect>
+        <x>200</x>
+        <y>30</y>
+        <width>301</width>
+        <height>27</height>
+       </rect>
+      </property>
+     </widget>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="page_6">
+    <widget class="QGroupBox" name="gbInOutCsv_3">
+     <property name="geometry">
+      <rect>
+       <x>14</x>
+       <y>116</y>
+       <width>541</width>
+       <height>76</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Input and output csv files</string>
+     </property>
+     <property name="flat">
+      <bool>true</bool>
+     </property>
+     <widget class="QPushButton" name="pushButtonInputLocalCartesian">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>30</y>
+        <width>141</width>
+        <height>34</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Select input file</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="lineEditInputCSVLocalCartesian">
+      <property name="geometry">
+       <rect>
+        <x>200</x>
+        <y>30</y>
+        <width>301</width>
+        <height>27</height>
+       </rect>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="groupBox_3">
+     <property name="geometry">
+      <rect>
+       <x>12</x>
+       <y>9</y>
+       <width>531</width>
+       <height>101</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Axes definition</string>
+     </property>
+     <widget class="QLabel" name="label_12">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>30</y>
+        <width>191</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>X axis azimuth/bearing</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="lineEditXAxisBearingCSVMode">
+      <property name="geometry">
+       <rect>
+        <x>200</x>
+        <y>30</y>
+        <width>113</width>
+        <height>27</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_13">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>60</y>
+        <width>161</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Y axis orientation</string>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="comboBoxYAxisOrientationCSVMode">
+      <property name="geometry">
+       <rect>
+        <x>200</x>
+        <y>60</y>
+        <width>92</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <item>
+       <property name="text">
+        <string>LEFT</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>RIGHT</string>
+       </property>
+      </item>
      </widget>
     </widget>
    </widget>
