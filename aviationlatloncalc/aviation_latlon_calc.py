@@ -506,63 +506,69 @@ class AviationLatLonCalc:
                 with open(self.input_file, 'r') as data_file:
 
                     reader = csv.DictReader(data_file, delimiter=';')
-                    for row in reader:
-                        # TO DO: UOM in csv file sprawdzanie
+                    header = reader.fieldnames
+                    if header != ['NAME', 'BRNG', 'DIST', 'DIST_UOM']:
+                        QMessageBox.critical(w, "Message", '''Wrong CSV file format.
+Different then: NAME;BRNG;DIST;DIST_UOM''')
+                    else:
+                        for row in reader:
+                            try:  # Try read fields of CSV file
+                                if len(row) != 0:
+                                    line_err_msg = ''
 
-                        line_nr += 1
-                        line_correct = True
-                        line_err_msg = ''
+                                    azm = agc.Bearing(row['BRNG'])
+                                    dist_uom = row['DIST_UOM']
+                                    dist = agc.Distance(row['DIST'], dist_uom)
 
-                        try:  # Try read fields of CSV file
+                                    if azm.is_valid is False:
+                                        line_correct = False
+                                        line_err_msg += 'Azimuth missing or invalid.'
 
-                            azm = agc.Bearing(row['BRNG'])
-                            dist_uom = row['DIST_UOM']
-                            dist = agc.Distance(row['DIST'], dist_uom)
+                                    if dist.is_valid is False:
+                                        line_correct = False
+                                        line_err_msg += 'Distance missing or invalid or wrong/missing UOM.'
 
-                            if azm.is_valid is False:
-                                line_correct = False
-                                line_err_msg += 'Azimuth missing or invalid.'
+                                    if dist_uom not in agc.UOM_LIST:
+                                        line_correct = False
+                                        line_err_msg += 'Distance UOM missing or invalid.'
 
-                            if dist.is_valid is False:
-                                line_correct = False
-                                line_err_msg += 'Distance missing or invalid or wrong/missing UOM.'
+                                    if line_correct is True:
 
-                            if dist_uom not in agc.UOM_LIST:
-                                line_correct = False
-                                line_err_msg += 'Distance UOM missing or invalid.'
+                                        calc_point_id = row['NAME']
+                                        calc_point.polar_coordinates2latlon(azm, dist)
 
-                            if line_correct is True:
+                                        cp_lat_dms, cp_lon_dms = calc_point.get_calc_point_dms()
+                                        cp_qgs_point = QgsPointXY(calc_point.cp_lon_dd, calc_point.cp_lat_dd)
 
-                                calc_point_id = row['NAME']
-                                calc_point.polar_coordinates2latlon(azm, dist)
+                                        cp_attributes = [calc_point_id,
+                                                         cp_lat_dms,
+                                                         cp_lon_dms,
+                                                         calc_point.cp_definition]
 
-                                cp_lat_dms, cp_lon_dms = calc_point.get_calc_point_dms()
-                                cp_qgs_point = QgsPointXY(calc_point.cp_lon_dd, calc_point.cp_lat_dd)
+                                        feat.setGeometry(QgsGeometry.fromPointXY(cp_qgs_point))
+                                        feat.setAttributes(cp_attributes)
+                                        out_prov.addFeatures([feat])
+                                    else:
 
-                                cp_attributes = [calc_point_id,
-                                                 cp_lat_dms,
-                                                 cp_lon_dms,
-                                                 calc_point.cp_definition]
+                                        log_line = 'Line: {}: {}'.format(row, line_err_msg)
+                                        self.dlg.plainTextEditAzmDistSummary.appendPlainText(log_line)
+                                else:
+                                    line_err_msg = 'Empty line'
+                                    log_line = 'Line nr: {}: {}'.format(row, line_err_msg)
+                                    self.dlg.plainTextEditAzmDistSummary.appendPlainText(log_line)
 
-                                feat.setGeometry(QgsGeometry.fromPointXY(cp_qgs_point))
-                                feat.setAttributes(cp_attributes)
-                                out_prov.addFeatures([feat])
-                            else:
-                                log_line = 'Line nr {}: {}: {}'.format(line_nr, row, line_err_msg)
+                            except:  # Unable to read CSV fields -> wrong/missing key, wrong delimiter etc.
+                                line_err_msg = 'CSV format not supported'
+                                log_line = 'Line nr {}: {}: {}'.format(row, line_err_msg)
                                 self.dlg.plainTextEditAzmDistSummary.appendPlainText(log_line)
-                        except:  # Unable to read CSV fields -> wrong/missing key, wrong delimiter etc.
-                            line_err_msg = 'CSV format not supported'
-                            log_line = 'Line nr {}: {}: {}'.format(line_nr, row, line_err_msg)
-                            self.dlg.plainTextEditAzmDistSummary.appendPlainText(log_line)
 
-                    out_lyr.commitChanges()
-                    out_lyr.updateExtents()
-                    self.iface.mapCanvas().setExtent(out_lyr.extent())
-                    self.iface.mapCanvas().refresh()
+                        out_lyr.commitChanges()
+                        out_lyr.updateExtents()
+                        self.iface.mapCanvas().setExtent(out_lyr.extent())
+                        self.iface.mapCanvas().refresh()
 
         # CSV file - azimuth, distance, offset
         elif self.dlg.comboBoxInputData.currentIndex() == 4:
-
 
             if self.dlg.lineEditInputCSVAzDistOffset.text() == '':  # File not chosen
                 # TO DO: validate if file exist is in correct format
@@ -582,39 +588,46 @@ class AviationLatLonCalc:
 
                 with open(self.input_file, 'r') as data_file:
                     reader = csv.DictReader(data_file, delimiter=';')
-                    for row in reader:
-                        # Read fields of CSV file
-                        calc_point_id = row['NAME']
-                        azm = agc.Bearing(row['BRNG'])
-                        dist_uom = row['DIST_UOM']
-                        dist = agc.Distance(row['DIST'], dist_uom)
-                        offset_side = row['OFFSET_SIDE']
-                        offset_uom = row['OFFSET_UOM']
-                        offset_dist = agc.Distance(row['OFFSET_DIST'], offset_uom)
 
-                        # Check if CSV field values are correct
-                        if azm.is_valid is True and dist.is_valid is True and offset_dist.is_valid is True:
+                    header = reader.fieldnames
+                    if header != ['NAME', 'BRNG', 'DIST_UOM', 'OFFSET_SIDE', 'OFFSET_DIST','OFFSET_UOM']:
+                        QMessageBox.critical(w, "Message", '''Wrong CSV file format.
+Different then: NAME;BRNG;DIST;DIST_UOM;OFFSET_SIDE;OFFSET_DIST;OFFSET_UOM''')
+                    else:
 
-                            calc_point.offset_coordinates2latlon(azm, dist, offset_side, offset_dist)
+                        for row in reader:
+                            # Read fields of CSV file
+                            calc_point_id = row['NAME']
+                            azm = agc.Bearing(row['BRNG'])
+                            dist_uom = row['DIST_UOM']
+                            dist = agc.Distance(row['DIST'], dist_uom)
+                            offset_side = row['OFFSET_SIDE']
+                            offset_uom = row['OFFSET_UOM']
+                            offset_dist = agc.Distance(row['OFFSET_DIST'], offset_uom)
 
-                            cp_lat_dms, cp_lon_dms = calc_point.get_calc_point_dms()
-                            cp_qgs_point = QgsPointXY(calc_point.cp_lon_dd, calc_point.cp_lat_dd)
+                            # Check if CSV field values are correct
+                            if azm.is_valid is True and dist.is_valid is True and offset_dist.is_valid is True:
 
-                            cp_attributes = [calc_point_id,
-                                             cp_lat_dms,
-                                             cp_lon_dms,
-                                             calc_point.cp_definition]
+                                calc_point.offset_coordinates2latlon(azm, dist, offset_side, offset_dist)
 
-                            feat.setGeometry(QgsGeometry.fromPointXY(cp_qgs_point))
-                            feat.setAttributes(cp_attributes)
-                            out_prov.addFeatures([feat])
-                        else:
-                            pass
+                                cp_lat_dms, cp_lon_dms = calc_point.get_calc_point_dms()
+                                cp_qgs_point = QgsPointXY(calc_point.cp_lon_dd, calc_point.cp_lat_dd)
 
-                    out_lyr.commitChanges()
-                    out_lyr.updateExtents()
-                    self.iface.mapCanvas().setExtent(out_lyr.extent())
-                    self.iface.mapCanvas().refresh()
+                                cp_attributes = [calc_point_id,
+                                                 cp_lat_dms,
+                                                 cp_lon_dms,
+                                                 calc_point.cp_definition]
+
+                                feat.setGeometry(QgsGeometry.fromPointXY(cp_qgs_point))
+                                feat.setAttributes(cp_attributes)
+                                out_prov.addFeatures([feat])
+                            else:
+                                pass
+
+                        out_lyr.commitChanges()
+                        out_lyr.updateExtents()
+                        self.iface.mapCanvas().setExtent(out_lyr.extent())
+                        self.iface.mapCanvas().refresh()
 
         # CSV file - Local Cartesian
 
@@ -646,41 +659,48 @@ class AviationLatLonCalc:
 
                 with open(self.input_file, 'r') as data_file:
                     reader = csv.DictReader(data_file, delimiter=';')
-                    for row in reader:
 
-                        # Read fields of CSV file
-                        calc_point_id = row['NAME']
-                        x_uom = row['X_UOM']
-                        x_value = agc.Distance(row['X'], x_uom,
-                                               checked_value='X coordinate', allow_negative=True)
-                        y_uom = row['Y_UOM']
-                        y_value = agc.Distance(row['Y'], y_uom,
-                                               checked_value='X coordinate', allow_negative=True)
+                    header = reader.fieldnames
+                    if header != ['NAME', 'X', 'X_UOM', 'Y', 'Y_UOM']:
+                        QMessageBox.critical(w, "Message", '''Wrong CSV file format.
+Different then: NAME;X;X_UOM;Y;Y_UOM''')
+                    else:
+
+                        for row in reader:
+
+                            # Read fields of CSV file
+                            calc_point_id = row['NAME']
+                            x_uom = row['X_UOM']
+                            x_value = agc.Distance(row['X'], x_uom,
+                                                   checked_value='X coordinate', allow_negative=True)
+                            y_uom = row['Y_UOM']
+                            y_value = agc.Distance(row['Y'], y_uom,
+                                                   checked_value='X coordinate', allow_negative=True)
 
 
-                        # Check if CSV field values are correct
-                        if x_value.is_valid is True and y_value.is_valid is True:
+                            # Check if CSV field values are correct
+                            if x_value.is_valid is True and y_value.is_valid is True:
 
-                            calc_point.local_cartesian_coordinates2latlon(x_axis_brng, y_axis_orient, x_value, y_value)
+                                calc_point.local_cartesian_coordinates2latlon(x_axis_brng, y_axis_orient, x_value, y_value)
 
-                            cp_lat_dms, cp_lon_dms = calc_point.get_calc_point_dms()
-                            cp_qgs_point = QgsPointXY(calc_point.cp_lon_dd, calc_point.cp_lat_dd)
+                                cp_lat_dms, cp_lon_dms = calc_point.get_calc_point_dms()
+                                cp_qgs_point = QgsPointXY(calc_point.cp_lon_dd, calc_point.cp_lat_dd)
 
-                            cp_attributes = [calc_point_id,
-                                             cp_lat_dms,
-                                             cp_lon_dms,
-                                             calc_point.cp_definition]
+                                cp_attributes = [calc_point_id,
+                                                 cp_lat_dms,
+                                                 cp_lon_dms,
+                                                 calc_point.cp_definition]
 
-                            feat.setGeometry(QgsGeometry.fromPointXY(cp_qgs_point))
-                            feat.setAttributes(cp_attributes)
-                            out_prov.addFeatures([feat])
-                        else:
-                            pass
+                                feat.setGeometry(QgsGeometry.fromPointXY(cp_qgs_point))
+                                feat.setAttributes(cp_attributes)
+                                out_prov.addFeatures([feat])
+                            else:
+                                pass
 
-                    out_lyr.commitChanges()
-                    out_lyr.updateExtents()
-                    self.iface.mapCanvas().setExtent(out_lyr.extent())
-                    self.iface.mapCanvas().refresh()
+                        out_lyr.commitChanges()
+                        out_lyr.updateExtents()
+                        self.iface.mapCanvas().setExtent(out_lyr.extent())
+                        self.iface.mapCanvas().refresh()
 
 
 
