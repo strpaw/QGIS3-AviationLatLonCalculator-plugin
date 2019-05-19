@@ -133,45 +133,6 @@
      <string>Mag Var</string>
     </property>
    </widget>
-   <widget class="QLabel" name="ref_lat_DD">
-    <property name="geometry">
-     <rect>
-      <x>131</x>
-      <y>89</y>
-      <width>68</width>
-      <height>19</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>TextLabel</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="ref_lon_DD">
-    <property name="geometry">
-     <rect>
-      <x>331</x>
-      <y>88</y>
-      <width>68</width>
-      <height>19</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>TextLabel</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="ref_mag_var">
-    <property name="geometry">
-     <rect>
-      <x>515</x>
-      <y>88</y>
-      <width>68</width>
-      <height>19</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>TextLabel</string>
-    </property>
-   </widget>
   </widget>
   <widget class="QPushButton" name="pushButtonCalculate">
    <property name="geometry">
@@ -249,7 +210,7 @@
     </rect>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>3</number>
    </property>
    <widget class="QWidget" name="page">
     <widget class="QLineEdit" name="lineEditADPointID">
@@ -820,27 +781,96 @@
       </property>
      </widget>
     </widget>
-    <widget class="QPlainTextEdit" name="plainTextEditAzmDistSummary">
-     <property name="geometry">
-      <rect>
-       <x>16</x>
-       <y>134</y>
-       <width>613</width>
-       <height>184</height>
-      </rect>
-     </property>
-    </widget>
     <widget class="QLabel" name="label_14">
      <property name="geometry">
       <rect>
-       <x>18</x>
-       <y>103</y>
-       <width>100</width>
+       <x>36</x>
+       <y>101</y>
+       <width>68</width>
        <height>19</height>
       </rect>
      </property>
      <property name="text">
-      <string>Summary:</string>
+      <string>Name:</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_15">
+     <property name="geometry">
+      <rect>
+       <x>36</x>
+       <y>138</y>
+       <width>68</width>
+       <height>19</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Brng:</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_16">
+     <property name="geometry">
+      <rect>
+       <x>38</x>
+       <y>174</y>
+       <width>68</width>
+       <height>19</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Dist:</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_17">
+     <property name="geometry">
+      <rect>
+       <x>37</x>
+       <y>211</y>
+       <width>90</width>
+       <height>19</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Dist UOM:</string>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="comboBoxNameField">
+     <property name="geometry">
+      <rect>
+       <x>116</x>
+       <y>103</y>
+       <width>327</width>
+       <height>25</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="comboBoxBrngField">
+     <property name="geometry">
+      <rect>
+       <x>116</x>
+       <y>138</y>
+       <width>327</width>
+       <height>25</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="comboBoxDistField">
+     <property name="geometry">
+      <rect>
+       <x>118</x>
+       <y>174</y>
+       <width>327</width>
+       <height>25</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="comboBoxDistUOMField">
+     <property name="geometry">
+      <rect>
+       <x>118</x>
+       <y>208</y>
+       <width>327</width>
+       <height>25</height>
+      </rect>
      </property>
     </widget>
    </widget>

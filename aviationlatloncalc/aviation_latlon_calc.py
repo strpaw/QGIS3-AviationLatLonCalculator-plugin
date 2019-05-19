@@ -202,6 +202,25 @@ class AviationLatLonCalc:
         self.input_file = QFileDialog.getOpenFileName(self.dlg, "Select input file ", "", '*.csv')[0]
         self.dlg.lineEditInputCSVAzDist.setText(self.input_file)
 
+        # After file selection fill in comboboxes with CSV fields
+
+        # Get CSV fields
+        with open(self.input_file, 'r') as csv_data:
+            reader = csv.DictReader(csv_data, delimiter=';')
+            header = reader.fieldnames
+
+        # Clear list in ComboBox widgets:
+        self.dlg.comboBoxNameField.clear()
+        self.dlg.comboBoxBrngField.clear()
+        self.dlg.comboBoxDistField.clear()
+        self.dlg.comboBoxDistUOMField.clear()
+
+        # Add fields from CSV
+        self.dlg.comboBoxNameField.addItems(header)
+        self.dlg.comboBoxBrngField.addItems(header)
+        self.dlg.comboBoxDistField.addItems(header)
+        self.dlg.comboBoxDistUOMField.addItems(header)
+
     def select_input_file_az_dist_offset(self):
         """ Select input csv file with data:
         ID of the point, azimuth, distance from reference point to the current point """
@@ -271,12 +290,6 @@ class AviationLatLonCalc:
         if self.ref_point.is_valid is False:
             check_result = False
             check_msg += self.ref_point.err_msg
-
-        # wyswietl wartosci DD
-        else:
-            self.dlg.ref_lat_DD.setText(str(self.ref_point.coordinates.lat_dd))
-            self.dlg.ref_lon_DD.setText(str(self.ref_point.coordinates.lon_dd))
-            self.dlg.ref_mag_var.setText(str(self.ref_point.mag_var.mag_var_dd))
         return check_result, check_msg
 
     def get_ad_distance_uom(self):
@@ -503,69 +516,126 @@ class AviationLatLonCalc:
                 out_prov = out_lyr.dataProvider()
                 feat = QgsFeature()
 
+
+
                 with open(self.input_file, 'r') as data_file:
 
                     reader = csv.DictReader(data_file, delimiter=';')
-                    header = reader.fieldnames
-                    if header != ['NAME', 'BRNG', 'DIST', 'DIST_UOM']:
-                        QMessageBox.critical(w, "Message", '''Wrong CSV file format.
-Different then: NAME;BRNG;DIST;DIST_UOM''')
-                    else:
-                        for row in reader:
-                            try:  # Try read fields of CSV file
-                                if len(row) != 0:
-                                    line_err_msg = ''
 
-                                    azm = agc.Bearing(row['BRNG'])
-                                    dist_uom = row['DIST_UOM']
-                                    dist = agc.Distance(row['DIST'], dist_uom)
+                    point_id = self.dlg.comboBoxNameField.currentText()
+                    azm_field = self.dlg.comboBoxBrngField.currentText()
+                    dist_uom_field = self.dlg.comboBoxDistUOMField.currentText()
+                    dist_field = self.dlg.comboBoxDistField.currentText()
 
-                                    if azm.is_valid is False:
-                                        line_correct = False
-                                        line_err_msg += 'Azimuth missing or invalid.'
 
-                                    if dist.is_valid is False:
-                                        line_correct = False
-                                        line_err_msg += 'Distance missing or invalid or wrong/missing UOM.'
+                    line_correct = True
 
-                                    if dist_uom not in agc.UOM_LIST:
-                                        line_correct = False
-                                        line_err_msg += 'Distance UOM missing or invalid.'
+                    for row in reader:
 
-                                    if line_correct is True:
+                        azm = agc.Bearing(row[azm_field])
+                        dist_uom = row[dist_uom_field]
+                        dist = agc.Distance(row[dist_field], dist_uom)
 
-                                        calc_point_id = row['NAME']
-                                        calc_point.polar_coordinates2latlon(azm, dist)
+                        if azm.is_valid is False:
+                            line_correct = False
+                            line_err_msg += 'Azimuth missing or invalid.'
 
-                                        cp_lat_dms, cp_lon_dms = calc_point.get_calc_point_dms()
-                                        cp_qgs_point = QgsPointXY(calc_point.cp_lon_dd, calc_point.cp_lat_dd)
+                        if dist.is_valid is False:
+                                line_correct = False
+                                line_err_msg += 'Distance missing or invalid or wrong/missing UOM.'
 
-                                        cp_attributes = [calc_point_id,
-                                                         cp_lat_dms,
-                                                         cp_lon_dms,
-                                                         calc_point.cp_definition]
+                        if dist_uom not in agc.UOM_LIST:
+                                line_correct = False
+                                line_err_msg += 'Distance UOM missing or invalid.'
 
-                                        feat.setGeometry(QgsGeometry.fromPointXY(cp_qgs_point))
-                                        feat.setAttributes(cp_attributes)
-                                        out_prov.addFeatures([feat])
-                                    else:
+                        if line_correct is True:
 
-                                        log_line = 'Line: {}: {}'.format(row, line_err_msg)
-                                        self.dlg.plainTextEditAzmDistSummary.appendPlainText(log_line)
-                                else:
-                                    line_err_msg = 'Empty line'
-                                    log_line = 'Line nr: {}: {}'.format(row, line_err_msg)
-                                    self.dlg.plainTextEditAzmDistSummary.appendPlainText(log_line)
+                            calc_point_id = row[point_id]
+                            calc_point.polar_coordinates2latlon(azm, dist)
 
-                            except:  # Unable to read CSV fields -> wrong/missing key, wrong delimiter etc.
-                                line_err_msg = 'CSV format not supported'
-                                log_line = 'Line nr {}: {}: {}'.format(row, line_err_msg)
-                                self.dlg.plainTextEditAzmDistSummary.appendPlainText(log_line)
+                            cp_lat_dms, cp_lon_dms = calc_point.get_calc_point_dms()
+                            cp_qgs_point = QgsPointXY(calc_point.cp_lon_dd, calc_point.cp_lat_dd)
 
-                        out_lyr.commitChanges()
-                        out_lyr.updateExtents()
-                        self.iface.mapCanvas().setExtent(out_lyr.extent())
-                        self.iface.mapCanvas().refresh()
+                            cp_attributes = [calc_point_id,
+                                             cp_lat_dms,
+                                             cp_lon_dms,
+                                             calc_point.cp_definition]
+
+                            feat.setGeometry(QgsGeometry.fromPointXY(cp_qgs_point))
+                            feat.setAttributes(cp_attributes)
+                            out_prov.addFeatures([feat])
+
+                    out_lyr.commitChanges()
+                    out_lyr.updateExtents()
+                    self.iface.mapCanvas().setExtent(out_lyr.extent())
+                    self.iface.mapCanvas().refresh()
+
+
+                    # for row in reader:
+                    #     try:  # Try read fields of CSV file
+                    #         if len(row) != 0:
+                    #             line_err_msg = ''
+                    #
+                    #             # azm = agc.Bearing(row['bearing'])
+                    #             # dist_uom = row['Unif of meausre']
+                    #             # dist = agc.Distance(row['Distance'], dist_uom)
+                    #
+                    #             # azm = agc.Bearing(row['BRNG'])
+                    #             # dist_uom = row['DIST_UOM']
+                    #             # dist = agc.Distance(row['DIST'], dist_uom)
+                    #
+                    #             azm = agc.Bearing(row[self.dlg.comboBoxBrngField.currentText()])
+                    #             dist_uom = row[self.dlg.comboBoxDistUOMField.currentText()]
+                    #             dist = agc.Distance(row[self.dlg.comboBoxDistField.currentText()], dist_uom)
+                    #             self.dlg.lineEditID.setText(row[self.dlg.comboBoxBrngField.currentText()])
+                    #             if azm.is_valid is False:
+                    #                 line_correct = False
+                    #                 line_err_msg += 'Azimuth missing or invalid.'
+                    #
+                    #             if dist.is_valid is False:
+                    #                 line_correct = False
+                    #                 line_err_msg += 'Distance missing or invalid or wrong/missing UOM.'
+                    #
+                    #             if dist_uom not in agc.UOM_LIST:
+                    #                 line_correct = False
+                    #                 line_err_msg += 'Distance UOM missing or invalid.'
+                    #
+                    #             if line_correct is True:
+                    #
+                    #                 calc_point_id = row[self.dlg.comboBoxNameField.currentTetx()]
+                    #                 #calc_point_id = '1'
+                    #                 calc_point.polar_coordinates2latlon(azm, dist)
+                    #
+                    #                 cp_lat_dms, cp_lon_dms = calc_point.get_calc_point_dms()
+                    #                 cp_qgs_point = QgsPointXY(calc_point.cp_lon_dd, calc_point.cp_lat_dd)
+                    #
+                    #                 cp_attributes = [calc_point_id,
+                    #                                  cp_lat_dms,
+                    #                                  cp_lon_dms,
+                    #                                  calc_point.cp_definition]
+                    #
+                    #                 feat.setGeometry(QgsGeometry.fromPointXY(cp_qgs_point))
+                    #                 feat.setAttributes(cp_attributes)
+                    #                 out_prov.addFeatures([feat])
+                    #             else:
+                    #
+                    #                 log_line = 'Line: {}: {}'.format(row, line_err_msg)
+                    #                 #QMessageBox.critical(w, "Message", str(row))
+                    #                 # self.dlg.plainTextEditAzmDistSummary.appendPlainText(log_line)
+                    #         else:
+                    #             line_err_msg = 'Empty line'
+                    #             log_line = 'Line nr: {}: {}'.format(row, line_err_msg)
+                    #             # self.dlg.plainTextEditAzmDistSummary.appendPlainText(log_line)
+                    #
+                    #     except:  # Unable to read CSV fields -> wrong/missing key, wrong delimiter etc.
+                    #         line_err_msg = 'CSV format not supported'
+                    #         # log_line = 'Line nr {}: {}: {}'.format(row, line_err_msg)
+                    #         # self.dlg.plainTextEditAzmDistSummary.appendPlainText(log_line)
+
+                        # out_lyr.commitChanges()
+                        # out_lyr.updateExtents()
+                        # self.iface.mapCanvas().setExtent(out_lyr.extent())
+                        # self.iface.mapCanvas().refresh()
 
         # CSV file - azimuth, distance, offset
         elif self.dlg.comboBoxInputData.currentIndex() == 4:
