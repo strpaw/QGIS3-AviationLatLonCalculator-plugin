@@ -416,6 +416,8 @@ coord_lon_comp_regex = {F_DMS_COMP: re.compile(r'''(?P<deg>^\d{3})  # Degrees
                                               ''', re.VERBOSE)}
 
 
+
+
 class AngleBase(AviationBaseClass):
     def __init__(self):
         AviationBaseClass.__init__(self)
@@ -443,19 +445,19 @@ class AngleBase(AviationBaseClass):
                 # Begins with digit -> positive sign
                 return ANGLE_POSITIVE, angle_norm.strip(), hem_char
 
-    @staticmethod
-    def check_angle_range(angle_dd, min_value, max_value):
-        """ Checks if angle is within closed interval <min_value, max_value>
-        :param angle_dd: float, angle value to check
-        :param min_value: float, minimum value
-        :param max_value: float, maximum value
-        :return: tuple (bool, float) if angle is within the range
-                 tuple (bool, None) if angle is out of range
-        """
-        if min_value <= angle_dd <= max_value:
-            return True, angle_dd
-        else:
-            return False, None
+    # @staticmethod
+    # def check_angle_range(angle_dd, min_value, max_value):
+    #     """ Checks if angle is within closed interval <min_value, max_value>
+    #     :param angle_dd: float, angle value to check
+    #     :param min_value: float, minimum value
+    #     :param max_value: float, maximum value
+    #     :return: tuple (bool, float) if angle is within the range
+    #              tuple (bool, None) if angle is out of range
+    #     """
+    #     if min_value <= angle_dd <= max_value:
+    #         return True, angle_dd
+    #     else:
+    #         return False, None
 
     @staticmethod
     def check_angle_dd(angle_norm):
